@@ -1,32 +1,37 @@
-#!/usr/bin/env python
-# wunderground-temp-display.py
+#!/usr/bin/env python3
+# owm-weatherbot.py
 #
-# Python script to grab Wunderground temperature data and display on scrollphathd. This script shows the current temperature along with an indicator of
+# Python script to grab temperature data from OpenWeathermap and display on scrollphathd. This script shows the current temperature along with an indicator of
 #  the temperature trend (same, going up, going down), averaged over a given period of time. It also shows a small line at the bottom which indicates current 
 #  wind speed and gusts. Current speed is shown using a brighter color and gusts are show using a dimmer color.
 #
-# Development environment: Python v2.7.13 on a Raspberry Pi Zero-W running Raspbian "stretch" and default scrollphathd libraries
+# Development environment: Python v3 on a Raspberry Pi Zero-W running Raspbian, default scrollphathd libraries, and pyowm python library.
 #
-# By Mark Ehr, 1/12/18. Released to the public domain with no warranties expressed or implied. Or something along those lines. Feel free to use
+# Original version by Mark Ehr, 1/12/18. Released to the public domain with no warranties expressed or implied. Or something along those lines. Feel free to use
 #	this code any way that you'd like. If you want to give me credit, that's great. 
+# OWM version by Scott Hoge, 11/23/2020. Ditto the above. :-)
+#
+# Installation notes:
+#    # pip3 install pyowm
+#    * Do one of the following:
+#    	# sudo apt-get install python3-scrollphathd 
+#       # sudo pip3 install scrollphat
+# 	# curl https://get.pimoroni.com/scrollphathd | bash
+#    * The scrollphat requires I2C enabled. Make sure that is turned on in raspi-config if the install above doesn't enable it.
+#    * You will need an OpenWeather API key, available for free at https://openweathermap.org. You just need a free "Current Weather Data" subscription, not one of the paid ones, though you're welcome to support them.
+#    * export OWM_API_KEY with your API key in your .bashrc (export OWM_API_KEY <OWM API key value>)
 #
 # Note: if you want this to auto-run upon boot, add this line to the bottom of /etc/rc.local just above the "exit 0" line:
-#	sudo python {path}/wunderground-temp-display.py &
+#	sudo python3 {path}/owm-weatherbot.py &
 #
 # Also note that if you receive an odd "Remote I/O" error, that's the scrollphathd's odd way of saying that it can't 
 #	communicate with the display. Check the hardware connection to make sure all of the pins are seated. In my case, it
 #	happened randomly until I re-soldered the header connections on the RPi as well as the hat.
 #
 
-# Updated to OpenWeather API 11/23/2020 snh
-
 import scrollphathd #default scrollphathd library
 from scrollphathd.fonts import font3x5
-try:
-    import urllib.request as urllib2
-except ImportError:
-    import urllib2	#used to make web calls to Wunderground
-import json 	#used to parse Wunderground JSON data
+from pyowm.owm import OWM	# OpenWeather library
 import time	#returns time values
 import os
 
@@ -34,24 +39,33 @@ import os
 #   (e.g. if you're using it in a Pimoroni Scroll Bot)
 scrollphathd.rotate(degrees=180)
 
-# Wunderground API key
-WGND_API_KEY = "paste your key here" 	#make sure to put your unique wunderground key in here
-WGND_API_KEY = os.environ.get("WGND_API_KEY", WGND_API_KEY) #or set the WGND_API_KEY environment variable
+# OpenWeather API key
+OWM_API_KEY = "paste your key here" 	#make sure to put your unique OpenWeather key in here
+OWM_API_KEY = os.environ.get("OWM_API_KEY", OWM_API_KEY) #or set the OWM_API_KEY environment variable
+
+# Create the OWM Weather Manager
+try:
+	owm = OWM(OWM_API_KEY)
+	weather_mgr = owm.weather_manager()
+except pyowm.commons.exceptions.UnauthorizedError as e:
+	e.msg = "{} (Did you set the API key?)".format(e.msg)
+	raise (e)
 
 # Customize this for your desired location. Easiest way to figure it out is to do a wunderground location search and copy/paste the tail end of the URL
 #	Note that some locations are a bit wonky. If a specific location has a hypen "-" in it and it doesn't work, try substituting an underscore "_" instead
 #	Even then, I couldn't get some locations to work properly. Seems like a possible bug in the wunderground API.
 
-WGND_STATION = "london,gb"					#London, UK
+OWM_STATION = "london,gb"					#London, UK
 
 # Some other fun stations to try
-#WGND_STATION = "ru/yakutsk" 				#Yakutsk, Russia - one of the coldest places on earth
-#WGND_STATION = "au/sydney" 				#Sydney, Australia
-#WGND_STATION = "gr/athens"					#Athens, Greece
-#WGND_STATION = "ae/dubai"					#Dubai, UAE
-#WGND_STATION = "us/nh/mount_washington"	#Mount Washington, NH, US - one of the windiest places on earth
+#OWM_STATION = "yakutsk,ru" 				#Yakutsk, Russia - one of the coldest places on earth
+#OWM_STATION = "sydney,au" 				#Sydney, Australia
+#OWM_STATION = "athens,gr"					#Athens, Greece
+#OWM_STATION = "dubai,ae"					#Dubai, UAE
+#OWM_STATION = "mount_washington,NH,US"	#Mount Washington, NH, US - one of the windiest places on earth
 
-WGND_STATION = os.environ.get("WGND_STATION", WGND_STATION)
+# Or set the OWM_STATION environment variable
+OWM_STATION = os.environ.get("OWM_STATION", OWM_STATION)
  
 
 # Weather polling interval (seconds). Free Wunderground API accounts allow 500 calls/day, so min interval of 172 (every ~2.88 min), assuming you're only making 1 call at a time.
@@ -83,10 +97,10 @@ TEMP_SCALE = "F"
 #	determine much much of a line to draw)
 if TEMP_SCALE == "F": #set max wind speed according to scale
 	MAX_WIND_SPEED = 75.0 #MPH; default 75.0
-	UNITS="imperial"
+	UNITS="fahrenheit"
 else:
 	MAX_WIND_SPEED = 100.0 #KPH; default 100.0
-	UNITS="metric"
+	UNITS="celsius"
 
 # Debug flag  - set to 1 if you want to print(informative console messages)
 DEBUG = 0
@@ -124,21 +138,7 @@ def get_weather_data():
 	global feels_like
 
 	#Get current conditions. Substitute your personal Wunderground API key and the desired weather station code
-	# Build Wunderground URL using api key and station specified at top.
-	# This code retrieves a complete set of current weather conditions and loads them up into a JSON catalog.
-	# Note that JSON, while very powerful, can also be very confusing to decode. I'd recommend you do a little reading on
-	#	it if you plan on playing around with this code much. It took me quite a while to figure out. 
-	url_str = "http://api.openweathermap.org/data/2.5/weather/?appid=" + WGND_API_KEY + "&q=" + WGND_STATION + "&units=" + UNITS
-        try:
-	    conditions = urllib2.urlopen(url_str)
-        except urllib2.HTTPError, e:
-            e.msg = "{} (Did you set the API key?)".format(e.msg)
-            raise (e)
-	json_string = conditions.read() 		#load into a json string
-	parsed_cond = json.loads(json_string.decode()) 	#parse the string into a json catalog
-	conditions.close()
-
-	print(parsed_cond)
+	obs = weather_mgr.weather_at_place(OWM_STATION).weather
 
 	#build current temperature string
 
@@ -148,12 +148,16 @@ def get_weather_data():
 		average_temp_counter = 0
 		if DEBUG:
 			print("Resetting average temp counters")
+
 	# parse out the current temperature and wind speeds from the json catalog based on which temperature scale is being used
-	temperature = str(parsed_cond['main']['temp']) #string used for display purposes
-	current_temp = parsed_cond['main']['temp']	#string used for calculations
-	wind_speed = float(parsed_cond['wind']['speed'])
-	wind_gusts = float(parsed_cond['wind']['gust'])
-	feels_like = float(parsed_cond['main']['feels_like'])
+	temp = obs.temperature(UNITS)
+	temperature = str(temp['temp']) 	#string used for display purposes
+	current_temp = float(temp['temp'])		#string used for calculations
+	feels_like = float(temp['feels_like'])
+
+	wind = obs.wind(unit='miles_hour')
+	wind_speed = float(wind['speed'])
+	wind_gusts = float(wind['gust'])
 	
 	# Calculate average temperature, which is used to determine temperature trending (same, up, down)
 	average_temp_cumulative = average_temp_cumulative + current_temp
@@ -178,9 +182,9 @@ def get_weather_data():
 	#	URL above into a web browser, which will return the raw json output. 
 	#
 
-	#humidity = parsed_cond['current_observation']['relative_humidity']
-	#precip = parsed_cond['current_observation']['precip_today_in']
-	#wind_dir = str(parsed_cond['current_observation']['wind_dir'])
+	#humidity = temp['humidity']
+	#precip = TBD
+	#wind_dir = wind['deg']
 
 	actual_str = actual_str + TEMP_SCALE # remove unneeded trailing data and append temperature scale (C or F) to the end
 	feels_like_str = fl_str + TEMP_SCALE # remove unneeded trailing data and append temperature scale (C or F) to the end
@@ -287,10 +291,10 @@ def display_temp_value():
 
 # BEGIN MAIN LOGIC
 
-print("'Live' temperature and wind display using Wunderground data.")
-print("Uses Raspberry Pi-W and Scrollphathd display. Written by Mark Ehr, January 2018")
+print("'Live' temperature and wind display using OpenWeatherMap.")
+print("Uses Raspberry Pi-W and Scrollphathd display. Written by Scott Hoge, November 2020")
 print("Press Ctrl-C to exit")
-print( "Current weather station: " , WGND_STATION)
+print( "Current weather station: " , OWM_STATION)
 
 # Initial weather data poll and write to display
 get_weather_data()
