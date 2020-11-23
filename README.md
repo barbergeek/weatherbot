@@ -4,7 +4,8 @@ Pimoroni Scrollphathd-based weather display
 https://github.com/pimoroni/scroll-phat-hd
 
 Original version by Mark Ehr, 1/12/18. Released to the public domain with no warranties expressed or implied. Or something along those lines. Feel free to use
-this code any way that you'd like. If you want to give me credit, that's great. 
+this code any way that you'd like. If you want to give me credit, that's great.
+
 OWM version by Scott Hoge, 11/23/2020. Ditto the above. :-)
 
 # Installation notes:
