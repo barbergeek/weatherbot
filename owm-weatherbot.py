@@ -40,7 +40,7 @@ import os
 scrollphathd.rotate(degrees=180)
 
 # OpenWeather API key
-OWM_API_KEY = "paste your key here" 	#make sure to put your unique OpenWeather key in here
+OWM_API_KEY = "cf534eebe55dfae4c598280317a428f1" 	#make sure to put your unique OpenWeather key in here
 OWM_API_KEY = os.environ.get("OWM_API_KEY", OWM_API_KEY) #or set the OWM_API_KEY environment variable
 
 # Create the OWM Weather Manager
@@ -63,6 +63,8 @@ OWM_STATION = "london,gb"					#London, UK
 #OWM_STATION = "athens,gr"					#Athens, Greece
 #OWM_STATION = "dubai,ae"					#Dubai, UAE
 #OWM_STATION = "mount_washington,NH,US"	#Mount Washington, NH, US - one of the windiest places on earth
+
+OWM_STATION = "Haymarket,VA,US"
 
 # Or set the OWM_STATION environment variable
 OWM_STATION = os.environ.get("OWM_STATION", OWM_STATION)
