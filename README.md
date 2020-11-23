@@ -9,7 +9,7 @@ this code any way that you'd like. If you want to give me credit, that's great.
 OWM version by Scott Hoge, 11/23/2020. Ditto the above. :-)
 
 # Installation notes:
-	# pip3 install pyowm
+	# sudo pip3 install pyowm
     
 	Then, do one of the following:
 	# sudo apt-get install python3-scrollphathd 
