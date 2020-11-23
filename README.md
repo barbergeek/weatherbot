@@ -9,12 +9,12 @@ this code any way that you'd like. If you want to give me credit, that's great.
 OWM version by Scott Hoge, 11/23/2020. Ditto the above. :-)
 
 # Installation notes:
-	# sudo pip3 install pyowm
+	# `sudo pip3 install pyowm`
     
 	Then, do one of the following:
-	# sudo apt-get install python3-scrollphathd 
-	# sudo pip3 install scrollphat
-	# curl https://get.pimoroni.com/scrollphathd | bash
+	# `sudo apt-get install python3-scrollphathd` 
+	# `sudo pip3 install scrollphat`
+	# `curl https://get.pimoroni.com/scrollphathd | bash`
 	
 	The scrollphat requires I2C enabled. Make sure that is turned on in raspi-config if the install above doesn't enable it.
 	You will need an OpenWeather API key, available for free at https://openweathermap.org.
