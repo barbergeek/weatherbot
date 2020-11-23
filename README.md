@@ -21,5 +21,6 @@ OWM version by Scott Hoge, 11/23/2020. Ditto the above. :-)
 	
 	export OWM_API_KEY with your API key in your .bashrc (export OWM_API_KEY <OWM API key value>)
 
-Note: if you want this to auto-run upon boot, add this line to the bottom of /etc/rc.local just above the "exit 0" line:
+Note: if you want this to auto-run upon boot, add this line to the bottom of /etc/rc.local just above the "exit 0" line\:
+
 \# sudo python3 {path}/owm-weatherbot.py &
