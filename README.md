@@ -11,7 +11,7 @@ OWM version by Scott Hoge, 11/23/2020. Ditto the above. :-)
 	# pip3 install pyowm
     
     	Then, do one of the following:
-    	# sudo apt-get install python3-scrollphathd 
+	# sudo apt-get install python3-scrollphathd 
 	# sudo pip3 install scrollphat
 	# curl https://get.pimoroni.com/scrollphathd | bash
 	
