@@ -40,7 +40,7 @@ import os
 scrollphathd.rotate(degrees=180)
 
 # OpenWeather API key
-OWM_API_KEY = "cf534eebe55dfae4c598280317a428f1" 	#make sure to put your unique OpenWeather key in here
+OWM_API_KEY = "put your key here" 	#make sure to put your unique OpenWeather key in here
 OWM_API_KEY = os.environ.get("OWM_API_KEY", OWM_API_KEY) #or set the OWM_API_KEY environment variable
 
 # Create the OWM Weather Manager
