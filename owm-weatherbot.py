@@ -158,8 +158,8 @@ def get_weather_data():
 	feels_like = float(temp['feels_like'])
 
 	wind = obs.wind(unit='miles_hour')
-	wind_speed = float(wind['speed'])
-	wind_gusts = float(wind['gust'])
+	wind_speed = float(wind.get('speed',0.0))
+	wind_gusts = float(wind.get('gust',0.0))
 	
 	# Calculate average temperature, which is used to determine temperature trending (same, up, down)
 	average_temp_cumulative = average_temp_cumulative + current_temp
