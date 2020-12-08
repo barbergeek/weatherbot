@@ -34,13 +34,14 @@ from scrollphathd.fonts import font3x5
 from pyowm.owm import OWM	# OpenWeather library
 import time	#returns time values
 import os
+import sys
 
 # Uncomment the below if your display is upside down
 #   (e.g. if you're using it in a Pimoroni Scroll Bot)
 scrollphathd.rotate(degrees=180)
 
 # OpenWeather API key
-OWM_API_KEY = "put your key here" 	#make sure to put your unique OpenWeather key in here
+OWM_API_KEY = "cf534eebe55dfae4c598280317a428f1" 	#make sure to put your unique OpenWeather key in here
 OWM_API_KEY = os.environ.get("OWM_API_KEY", OWM_API_KEY) #or set the OWM_API_KEY environment variable
 
 # Create the OWM Weather Manager
@@ -78,7 +79,7 @@ AVG_TEMP_RESET_INTERVAL = 60
 
 # Flags used to specify whether to display actual or "feels like" temperature.
 # Change CURRENT_TEMP_DISPLAY to 1 for actual temp and anything other than 1 for feels like temperature
-CURRENT_TEMP_DISPLAY = 0 #feels like
+CURRENT_TEMP_DISPLAY = 1 #feels like
 
 # Display settings
 BRIGHT = 0.2
@@ -140,7 +141,18 @@ def get_weather_data():
 	global feels_like
 
 	#Get current conditions. Substitute your personal Wunderground API key and the desired weather station code
-	obs = weather_mgr.weather_at_place(OWM_STATION).weather
+	trycount = 0
+	obs = None
+	while obs is None and trycount < 10:
+		try:
+			obs = weather_mgr.weather_at_place(OWM_STATION).weather
+			trycount += 1
+		except (urllib3.exceptions.ReadTimeoutError, socket.timeout, requests.exceptions.ReadTimeout, pyown.commons.exceptions.TimeoutError):
+			print("TIMEOUT ERROR: ", sys.exc_info()[0])
+			time.sleep(10)
+		except:
+			print("OTHER ERROR: ", sys.exc_info()[0])
+			time.sleep(10)
 
 	#build current temperature string
 
