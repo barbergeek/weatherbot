@@ -35,6 +35,39 @@ from pyowm.owm import OWM	# OpenWeather library
 import time	#returns time values
 import os
 import sys
+import getopt
+
+USAGE = f"Usage: python3 {sys.argv[0]} [-h|--help] | [-v|--version] | [-d|--debug]"
+VERSION = f"{sys.argv[0]} version 1.0.0"
+
+# Debug flag  - set to 1 if you want to print(informative console messages)
+DEBUG = 0
+
+def parse():
+	global DEBUG
+
+	options, arguments = getopt.getopt(
+		sys.argv[1:],			# Arguments
+		'vhd',				# Short option definitions
+		["version", "help", "debug"])	# Long option definitions
+	for o, a in options:
+		if o in ("-v", "--version"):
+			print(VERSION)
+			sys.exit()
+		if o in ("-h", "--help"):
+			print(USAGE)
+			sys.exit()
+		if o in ("-d", "--debug"):
+			DEBUG = 1
+	if len(arguments) > 1:
+		raise SystemExit(USAGE)
+	try:
+		operands = [int(arg) for arg in arguments]
+	except ValueError:
+		raise SystemExit(USAGE)
+	return operands
+
+operands = parse()
 
 # Uncomment the below if your display is upside down
 #   (e.g. if you're using it in a Pimoroni Scroll Bot)
@@ -104,9 +137,6 @@ if TEMP_SCALE == "F": #set max wind speed according to scale
 else:
 	MAX_WIND_SPEED = 100.0 #KPH; default 100.0
 	UNITS="celsius"
-
-# Debug flag  - set to 1 if you want to print(informative console messages)
-DEBUG = 0
 
 #Initialize global variables before use
 current_temp = 0.0
