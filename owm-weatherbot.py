@@ -31,11 +31,22 @@
 
 import scrollphathd #default scrollphathd library
 from scrollphathd.fonts import font3x5
-from pyowm.owm import OWM	# OpenWeather library
+#from pyowm.owm import OWM	# OpenWeather library
+import pyowm
 import time	#returns time values
 import os
 import sys
 import getopt
+import logging
+import urllib3
+import socket
+import requests
+
+from secrets import OWM_API_KEY
+
+#log to /var/log/weatherbot.log
+logging.basicConfig(filename='weatherbot.log', level=logging.INFO)
+
 
 USAGE = f"Usage: python3 {sys.argv[0]} [-h|--help] | [-v|--version] | [-d|--debug]"
 VERSION = f"{sys.argv[0]} version 1.0.0"
@@ -74,12 +85,11 @@ operands = parse()
 scrollphathd.rotate(degrees=180)
 
 # OpenWeather API key
-OWM_API_KEY = "cf534eebe55dfae4c598280317a428f1" 	#make sure to put your unique OpenWeather key in here
 OWM_API_KEY = os.environ.get("OWM_API_KEY", OWM_API_KEY) #or set the OWM_API_KEY environment variable
 
 # Create the OWM Weather Manager
 try:
-	owm = OWM(OWM_API_KEY)
+	owm = pyowm.OWM(OWM_API_KEY)
 	weather_mgr = owm.weather_manager()
 except pyowm.commons.exceptions.UnauthorizedError as e:
 	e.msg = "{} (Did you set the API key?)".format(e.msg)
@@ -177,12 +187,14 @@ def get_weather_data():
 		try:
 			obs = weather_mgr.weather_at_place(OWM_STATION).weather
 			trycount += 1
-		except (urllib3.exceptions.ReadTimeoutError, socket.timeout, requests.exceptions.ReadTimeout, pyown.commons.exceptions.TimeoutError):
+		except (urllib3.exceptions.ReadTimeoutError, socket.timeout, requests.exceptions.ReadTimeout, pyowm.commons.exceptions.TimeoutError):
 			print("TIMEOUT ERROR: ", sys.exc_info()[0])
 			time.sleep(10)
 		except:
 			print("OTHER ERROR: ", sys.exc_info()[0])
 			time.sleep(10)
+	if trycount > 0:
+		print(f'Took {trycount} retries to correct.')
 
 	#build current temperature string
 
