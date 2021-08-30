@@ -41,12 +41,16 @@ import logging
 import urllib3
 import socket
 import requests
+from StreamToLogger import StreamToLogger
 
 from secrets import OWM_API_KEY
 
 #log to /var/log/weatherbot.log
 logging.basicConfig(filename='weatherbot.log', level=logging.INFO)
 
+log = logging.getLogger('weatherbot')
+#sys.stdout = StreamToLogger(log, logging.INFO)
+sys.stderr = StreamToLogger(log, logging.ERROR)
 
 USAGE = f"Usage: python3 {sys.argv[0]} [-h|--help] | [-v|--version] | [-d|--debug]"
 VERSION = f"{sys.argv[0]} version 1.0.0"
@@ -186,15 +190,16 @@ def get_weather_data():
 	while obs is None and trycount < 10:
 		try:
 			obs = weather_mgr.weather_at_place(OWM_STATION).weather
-			trycount += 1
 		except (urllib3.exceptions.ReadTimeoutError, socket.timeout, requests.exceptions.ReadTimeout, pyowm.commons.exceptions.TimeoutError):
 			print("TIMEOUT ERROR: ", sys.exc_info()[0])
+			trycount += 1
 			time.sleep(10)
 		except:
 			print("OTHER ERROR: ", sys.exc_info()[0])
+			trycount += 1
 			time.sleep(10)
 	if trycount > 0:
-		print(f'Took {trycount} retries to correct.')
+		print(f'Took {trycount} retries to get weather.')
 
 	#build current temperature string
 
