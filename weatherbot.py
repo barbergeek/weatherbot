@@ -13,11 +13,7 @@
 # Revised 11/18/2021 to use the US NWS API
 #
 # Installation notes:
-#	# pip install python-dotenv
-#    * Do one of the following:
-#    	# sudo apt-get install python3-scrollphathd 
-#       # sudo pip3 install scrollphat
-# 	# curl https://get.pimoroni.com/scrollphathd | bash
+#	# pip3 install -r requirements.txt
 #    * The scrollphat requires I2C enabled. Make sure that is turned on in raspi-config if the install above doesn't enable it.
 #
 # Note: if you want this to auto-run upon boot, add this line to the bottom of /etc/rc.local just above the "exit 0" line:
